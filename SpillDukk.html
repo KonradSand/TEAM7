@@ -1,0 +1,155 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Prøv selv 10.3.3</title>
+    <style>
+        #minCanvas2 { border:20px solid DarkOrange;}
+    </style>
+</head>
+<body>
+    <canvas width="600" height="400" id="minCanvas2"></canvas>
+    <script>
+        var dukk = 0;
+        var poeng = 0;
+        var jumped = false;
+        var minCanvas2 = document.getElementById("minCanvas2");
+        var ctx2 = minCanvas2.getContext("2d");
+        var theGameIsOn2 = true; //Global variabel
+        var fartsokning2 =1;
+        var bane2 = { //Objektet bane2
+            bredde : minCanvas2.width, //Bredden lik canvas
+            hoyde : minCanvas2.height,
+            gressfarge : "gray",
+            linjefarge : "blue",
+            linjetykkelse : 4
+        };
+        var ball2 = { //Objektet ball2
+            radius : 7,
+            xpos: 0, //x-posisjonen ved start
+            ypos: 350, //y-posisjonen ved start
+            farge: "black",
+            xretning: -1, //Mot venstre
+            yretning: 0, //Nedover
+            xfart: 4,
+            yfart: 4
+        };
+        var racket2 = {
+            "bredde" : [25,50],
+            "hoyde" : [50,25],
+            "farge" : "pink",
+            "xpos" : bane2.bredde/2,
+            "ypos" : bane2.hoyde-50,
+            "xretning" : 0, //Hvilken vei racket2en beveger seg
+            "xfart" : 0, //Piksler racket2en flytter seg
+            "yretning" : 0, //Hvilken vei racket2en beveger seg
+            "yfart" : 7 //Piksler racket2en flytter seg
+        };
+        function tegnbane2() { //Funksjonen som tegner bane2n
+            ctx2.fillStyle = bane2.gressfarge; //Farge på gresset
+            ctx2.fillRect(0, 0, bane2.bredde, bane2.hoyde); //Gresset
+        }
+        function tegnball2() {
+            ctx2.beginPath(); //Start tegningen av buen
+            ctx2.arc(ball2.xpos, ball2.ypos, ball2.radius, 0, Math.PI * 2); //Tegner en sirkel
+            ctx2.closePath(); //Lukker sirkelbuen
+            ctx2.fillStyle = ball2.farge; //Setter fargen
+            ctx2.fill(); //Fyller sirkelen med fargen
+            ball2.xpos = ball2.xpos + Math.pow(ball2.xfart,fartsokning2) * ball2.xretning; //Endrer x-posisjon
+            ball2.ypos = ball2.ypos + Math.pow(ball2.yfart,fartsokning2) * ball2.yretning; //Endrer y-posisjon
+            fartsokning2+=0.0005;
+        }
+        function tegnracket2() {
+            ctx2.fillStyle = racket2.farge; //Farge på racket2en
+            ctx2.fillRect(racket2.xpos, racket2.ypos, racket2.bredde[dukk], racket2.hoyde[dukk]); //Tegner opp racket2en
+            if (racket2.ypos <= 0 && racket2.yretning === -1) {
+                return; //Avslutter funksjonen
+            }
+            if (racket2.ypos + racket2.hoyde[dukk] >= bane2.hoyde && racket2.yretning === 1) {
+                return; //Avslutter funksjonen
+            }
+            if (racket2.xpos <= 0 && racket2.xretning === -1) {
+                return; //Avslutter funksjonen
+            }
+            if (racket2.xpos + racket2.bredde[dukk] >= bane2.bredde && racket2.xretning === 1) {
+                return; //Avslutter funksjonen
+            }
+            racket2.ypos = racket2.ypos + (racket2.yfart * racket2.yretning);
+            racket2.xpos = racket2.xpos + (racket2.xfart * racket2.xretning);
+        }
+        function sjekkOmball2TrefferVegg() {
+            if(ball2.xpos <= ball2.radius) { //Venstre vegg
+                ball2.xretning = 1; //ball2en går til høyre når den har truffet venstre vegg
+            }
+            if(ball2.xpos + ball2.radius >= bane2.bredde) { //Høyre vegg
+                ball2.xretning = -1; //ball2en går til venstre når den har truffet høyre vegg
+            }
+            if(ball2.ypos + ball2.radius >= bane2.hoyde) { //Nedre vegg
+                ball2.yretning = -1; //ball2en går oppover når den har truffet nedre vegg
+            }
+            if(ball2.ypos <= ball2.radius) { //Øvre vegg
+                ball2.yretning = 1; //ball2en skal gå nedover etter at den har truffet øvre vegg
+            }
+        }
+        function sjekkOmball2Trefferracket2() {
+            var ball2enErTilVenstre = ball2.xpos + ball2.radius < racket2.xpos;
+            var ball2enErtilHoyre = ball2.xpos - ball2.radius > racket2.xpos + racket2.bredde[dukk];
+            var ball2enErOver = ball2.ypos + ball2.radius < racket2.ypos;
+            var ball2enErUnder = ball2.ypos - ball2.radius > racket2.ypos + racket2.hoyde[dukk];
+            if(!ball2enErTilVenstre && ! ball2enErtilHoyre && ! ball2enErOver && ! ball2enErUnder) {
+                theGameIsOn2=false;
+
+                alert("Du fikk " + poeng + " poeng")
+                localStorage.removeItem("Game1");
+                localStorage.setItem('Game1',JSON.stringify(1))
+                //window.location.href = "SpillMovearound.html"
+            }
+        }
+        function stopjump(){
+
+          if(racket2.ypos<bane2.hoyde/2){
+            console.log("TEST");
+              racket2.yretning = 1;
+          }
+          if(racket2.ypos == 350){
+
+            jumped=false
+          }
+        }
+        function gameLoop() { //Funksjonen kaller opp alle de andre funksjonene
+            tegnbane2();
+            tegnball2();
+            tegnracket2();
+            stopjump();
+            sjekkOmball2TrefferVegg();
+            sjekkOmball2Trefferracket2();
+            poeng++;
+            if (theGameIsOn2) {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+        gameLoop();
+        document.onkeydown = function(evt) {
+            var tastekode = evt.keyCode;
+
+            if(tastekode === 38) { //Pil opp
+              if (jumped == false){
+
+              racket2.yretning = -1;
+            jumped = true; }}//racket2en vil flytte seg oppover
+
+if(tastekode === 40){ dukk =1; console.log("funker det");
+racket2.yretning = 1;}
+
+            }
+
+
+        document.onkeyup = function(evt) {
+            var tastekode = evt.keyCode;
+
+            if(tastekode === 38 && racket2.yretning === -1) { racket2.yretning = 1; }
+            if(tastekode === 40){ dukk =0; if (jumped == false){racket2.ypos=350; console.log("JJJ");}}//fiks sånn at du ikke teleporterer ned med slipp av piltas.
+        }
+    </script>
+</body>
+</html>
